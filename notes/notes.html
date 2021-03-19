@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+<title>notes.html</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+
+</head>
+
+<body>
+
+<h1>CS 231n: Convolutional Neural Networks for Visual Recognition</h1>
+<h1><a href="https://www.youtube.com/watch?v=vT1JzLTH4G4&amp;list=PLC1qU-LWwrF64f4QKQT-Vg5Wr4qEE1Zxk">Lecture 1</a></h1>
+<h2>Computer Vision Overview</h2>
+<h3>Welcome &amp; Obiquity of visual data</h3>
+<ul>
+<li>Many sensors in the world.</li>
+<li>Enormous amount of visual data produced in the world.</li>
+<li>Visual data is a bit like the <em>dark matter</em> of the internet.</li>
+<li>Every second there are 5 hours of new videos uploaded onto Youtube (in 2017)</li>
+<li>Computer Vision combines various fields.</li>
+</ul>
+<h3>A brief historical overview</h3>
+<ul>
+<li>Biological:</li>
+<li>540 million years ago the first animals developed eyes.</li>
+<li>The subsequent 10 million years saw an explosion of species.</li>
+<li>Vision is hugely important especially for intelligent animals.</li>
+<li>Machine vision history<ul>
+<li>Camera Obscura</li>
+<li>Hubel &amp; Wiesel 1959 use electrophysiology to understand what visual processing is like in mammals.</li>
+<li>Electrodes in cat brain, simple cells.</li>
+<li>Block world - Roberts 1963</li>
+<li>Summer Vision project - Papert 1966</li>
+<li>Marr 1970s: "Vision": deconstructing visual information into simple, 2.5d, then 3d</li>
+<li>Moving beyond simple blocks in 1970s: "generalized cylinder" / "pictorial structure": reduces complex structure into simpler shapes.</li>
+<li>Lowe 1987: combining lines and edges (this looks like cool art to me!)</li>
+<li>Image Segmentation: graph algorithms, and then face recognition using machine learning, even real time (Viola Jones 2001).</li>
+<li>Object Recognition using SIFT (Lowe 1999): some features remain invariant: <em>diagnostic features</em>.</li>
+<li><em>Spatial Pyramid Matching</em>: take features from different parts of the image and put together in support vector machine.</li>
+<li>Similar: Histogram of Gradients, Deformable Part Model (first decade of 2000s).</li>
+<li>Pascal Visual Object Challenge: benchmark challenge, 20 object categories.</li>
+<li>Most machine learning algorithms are likely to overfit, because there is a high dimension input and little input.</li>
+<li>Solution: image-net. 14 million images. Large Scale Visual Recognition Challenge.</li>
+<li>2012: first convolutional neural network. (Popular name: deep learning)</li>
+</ul>
+</li>
+</ul>
+<h3>Overview of this class</h3>
+<ul>
+<li>Image classification is the focus of this class.</li>
+<li>May seem restrictive but can be applied all over the place.</li>
+<li>Also: object detection, action classification, image captioning.</li>
+<li>Since 2012, breakthrough of convolutional neural networks, this is what always has won the imageneht challenge.</li>
+<li>CNN foundation: LeCun 1998 at Bell Labs, digit recognition. Similar structure to 2012 AlexNet.</li>
+<li>Why did it only become so popular recently?<ul>
+<li>Moore's Law</li>
+<li>GPU's</li>
+<li>Data</li>
+</ul>
+</li>
+<li>Quest for visual intelligence goes far beyond object recognition! Open problems!<ul>
+<li>What does every pixel mean?</li>
+<li>Activity recognition</li>
+<li>Problems guided by augmented, virtual reality</li>
+</ul>
+</li>
+<li>Example: images as "scene graphs" of large objects.</li>
+<li>An image tells an entire story.</li>
+<li>I really liked the <strong>Obama image as an example</strong> of how many layers the story behind a picture can have.</li>
+</ul>
+<h3>Logistics</h3>
+<ul>
+<li>Optional text: Deep Learning by Goodfellow, Bengio, Courville, <a href="https://www.deeplearningbook.org/">Free online</a>.</li>
+<li>Philosophy: understand the algorithms at a deep level. Thorough and detailed. Implementing it all in Python.</li>
+<li>Also practical. State of the art tools.</li>
+<li>Fun. Image captioning and artistic things. <strong>I'm excited about this.</strong></li>
+<li>Programming assignments in Python, being able to read C++. Calculus and Linear Algebra. Some knowledge about Machine Learning.</li>
+</ul>
+<h1>Lecture 2</h1>
+<h3>Introduction</h3>
+<ul>
+<li>Can start on first assignment</li>
+<li>There is a Python Numpy tutorial</li>
+<li>Possible to use Google cloud</li>
+</ul>
+<h3>Image Classification</h3>
+<ul>
+<li>Given a set of discrete labels, like dog, cat, truck, ..., and a picture, give it the most appropriate label.</li>
+<li>A computer just sees an image as a big grid of numbers in [0,255], of dimension 800 x 600 x 3 (RGB channels).</li>
+<li>"Semantic gap": how to convert this into a concept.</li>
+<li>Possible challenges: deformation, illumination, camera angle, occlusion (this example is really cute), background clutter, intraclass variation.</li>
+<li>Some of these things work very fast and well! This is pretty amazing.</li>
+<li>What would be the API? There is no obvious algorithm to hard-code.</li>
+<li>Attempts have been made: find edges, find corners, ...</li>
+<li>Even if successful, this is not scalable.</li>
+<li>Solution: Data-Driven Approach.</li>
+<li>Collect dataset</li>
+<li>Use Machine Learning to train a classifier</li>
+<li>Evaluate the classifier on new images</li>
+<li>API changes a little bit: one function called <code>train</code>, and another called <code>predict</code>.</li>
+</ul>
+<h3>Nearest Neighbor</h3>
+<ul>
+<li>The first example of a simple data-driven approach.</li>
+<li>Training phase: memorize all,</li>
+<li>Prediction phase: just predict the closest one.</li>
+<li>Example dataset: CIFAR-10: 10 classes, 50000 training images, 10000 testing images.</li>
+<li>Won't work well but nice to work through.</li>
+<li>But how do we compare?</li>
+<li>First possibility is just to use the l-1 (Manhattan)-distance: sum of absolute value of differences by pixel.</li>
+<li>Training is really fast O(1), predicting is pretty slow O(N).</li>
+<li>Typically we want the reverse of this!</li>
+<li>Nice visualization shows weird islands and fingers.</li>
+</ul>
+<h3>k-nearest neighbor</h3>
+<ul>
+<li>It's better to take a majority vote among the k nearest neighbors.</li>
+<li>Larger values of k give smoother regions. You get white regions when there's a tie.</li>
+<li>Pictures are just vectors in a high dimensional space. It is useful to switch back and forth the actual pictures and the vector point of view.</li>
+<li>One can change the distance function: Euclidean distance. This is rotation-invariant and may be more natural when the vectors themselves don't have any particular meaning.</li>
+<li>There is a demo that works in the browser.</li>
+<li>How to choose the right k and distance metric?</li>
+<li>These are examples of <strong>hyperparameters</strong>.</li>
+</ul>
+<h3>Setting Hyperparameters</h3>
+<ul>
+<li>Idea 1: Choose hyperparameters based on data. <ul>
+<li>This is a really bad idea: k = 1 will always work perfectly on training date.</li>
+</ul>
+</li>
+<li>Idea 2: Split data into train and test. Then pick hyperparameters based on test data. <ul>
+<li>Also a terrible idea: no idea how algorithm will perform on new data.</li>
+</ul>
+</li>
+<li>Idea 3: Three different sets: train, validation, test. It is very important to keep this separate in research.</li>
+<li>Idea 4: (Especially for small data sets) Cross-Validation. Split data into various 'folds', average the results of trying each fold as validation set. Find robust hyperparameters. In deep learning not used too much in practice.</li>
+<li>You use this to choose the hyperparameters.</li>
+</ul>
+<h3>Why k nearest neighbor is not useful in practice</h3>
+<ul>
+<li>Distance does not correspond to our perception: <strong>cool example</strong> showing different pictures with same Euclidean distance to a sample picture.</li>
+<li>Curse of dimensionality: in a high dimensional space, everything is far apart. You need a dense number of training samples. The number of training samples needed to densely cover the space grows exponentially with the dimension of the space.</li>
+<li>But we will implement it in the first homework.</li>
+</ul>
+<h3>Linear Classification</h3>
+<ul>
+<li>Simple but important for neural networks. Single building block in a neural network.</li>
+<li>Parametric approach.<ul>
+<li>Taking as input: data x and parameters W.</li>
+<li>Gives as output a vector of 10 class scores.</li>
+</ul>
+</li>
+<li>What to take as function f?<ul>
+<li>Simplest answer: multiply. f(x, W) = Wx + b.</li>
+<li>b is called the bias vector.</li>
+</ul>
+</li>
+<li>You learn the weight matrix W. You can visualize the rows of W to see what the various class "templates" look like. <strong>This looks really cool</strong></li>
+<li>Easy to also understand what it's doing geometrically: drawing hyperplanes around the data of one class. </li>
+<li>Hard cases for a linear classifier:<ul>
+<li>Parity problem (odd vs even)</li>
+<li>Multimodal data: Two isolated "islands" of data</li>
+</ul>
+</li>
+<li>So how do you get the right W? Loss functions, optimization, etc. Next time!</li>
+</ul>
+<h1>Lecture 3</h1>
+<h2>Introduction</h2>
+<ul>
+<li>You can use Google cloud.</li>
+<li>Recall:<ul>
+<li>Recognition is a hard problem</li>
+<li>Data-driven approach, k-nearest neighbors</li>
+<li>Train, validation and test sets</li>
+<li>Linear classifier with parameter matrix W</li>
+<li>Each row in the matrix W is a template in the class</li>
+<li>You can also view it as learning decision boundaries for images in a high-dimensional space</li>
+</ul>
+</li>
+<li>To do:<ul>
+<li>Define loss function -&gt; quantifying the badness of W,</li>
+<li>Optimization -&gt; searching through the space of all possible W's.</li>
+</ul>
+</li>
+</ul>
+<h2>Loss functions</h2>
+<ul>
+<li>We have a training data set of pairs (x,y):<ul>
+<li>x is the image</li>
+<li>y is the label</li>
+</ul>
+</li>
+<li>Loss is average of losses on individual examples.</li>
+</ul>
+<h3>Multi-class support vector machine</h3>
+<ul>
+<li>For an answer to be marked <em>correct</em>, the score given to the true answer should be at least 1 higher than the score given to any other class.<ul>
+<li>(This choice of 1 as a cut-off is irrelevant because we only care about relative differences between scores.)</li>
+</ul>
+</li>
+<li><strong>Hinge loss</strong> is the sum over max(0, s-correct - s-other + 1) where s-correct is the score given to the correct answer and s-other is the score given to another class, as other ranges over all incorrect classes.</li>
+<li>The explanation and the examples of the hinge loss function here were not so easy to follow. I think a type of example that was missing is where, on a cat picture, the scores are something like (cat=3.2, car=5.1, frog=2.5). Then for the car you have a 2.9 loss because 5.1 - 3.2 + 1 = 2.9, and for the frog score you <em>also</em> get a little loss, namely 2.5 - 3.2 + 1 = 0.3.</li>
+<li>A few observations about this loss function:<ul>
+<li>If performance is really good on a particular example then even if we jiggle the score of the correct answer a little, loss will stay 0.</li>
+<li>The minimum loss is 0, the maximum loss is infinte.</li>
+<li>The expected initial loss (with a random initialization of W) is the number of classes - 1 (approximately 1 loss for each class except the correct one).</li>
+<li>For debugging it is useful to check that the initial loss agrees with what we'd expect.</li>
+<li>Could also use the mean, or make the minimum loss 1 by including the training example, but again this does not change anything.</li>
+</ul>
+</li>
+<li>You could also look at <strong>square hinge loss</strong>, this changes the algorithm. This means we weigh the mistakes differently.</li>
+<li>Easily coded in a vectorized way.</li>
+</ul>
+<h3>Regularization</h3>
+<ul>
+<li>The loss function can be too well-fitted to the training data.</li>
+<li>Ockham's Razor: add an explicit <em>regularization</em> penalty R. The hyperparameter <em>lambda</em> decides how strong this regularization is applied.</li>
+<li>In a formula we add lambda * R(W) to the loss function.</li>
+<li>Various regularizations are used: L2-norm of W, L1-norm of W, max-norm of W, a lot more fancy ones.</li>
+<li>L2 regularization asks to "spread" values through the factor.</li>
+<li>L2 regularization also corresponds to "MAP inference using a Gaussian prior on W".</li>
+</ul>
+<h3>Multinomial Logistic Regression (Softmax)</h3>
+<ul>
+<li>A bit more common in deep learning.</li>
+<li>We will give meaning to the scores using "softmax/cross-entropy function":</li>
+<li>Raw scores are viewed as <strong>probabilities</strong>.</li>
+<li>Suppose the scores are (s0, s1, s2, ..., sn) where the correct answer is 0. Then we interpret the probability that the correct answer is k as exp(sk) / S, where S is the sum over exp(sj) for all j.</li>
+<li>The <em>true</em> probability distribution is (1, 0, 0, ..., 0) and this is what we want to get close to.</li>
+<li>So the loss on this (generic) example is -log( exp(s0) / S) = log(S) - s0.<ul>
+<li>Minimum loss (but in theory only due to logs and exps) is 0 and maximum is unbounded (but in theory only).</li>
+<li>Initially the loss should be about log(C) where C is the number of classes.</li>
+<li>Suppose we change the score of one datapoint slightly. Then softmax will keep trying to improve, closer and closer to the true probability distribution.</li>
+</ul>
+</li>
+</ul>
+<h2>Optimization</h2>
+<ul>
+<li>You're trying to find the bottom of a valley.</li>
+<li>You can't really compute it analytically.</li>
+<li>How would you go about finding the valley then?</li>
+<li>Strategy 1: Random guesses for W.</li>
+<li>Strategy 2: Follow the slope.</li>
+<li>To do so, we use the <strong>negative gradient vector</strong> of the loss function, which is the direction of greatest descent.</li>
+<li>How to compute it?<ul>
+<li>First way: finite difference approximation of the (partial) derivatives. But this is super slow.</li>
+<li>Can do something analytic here! The loss is a function of W! <strong>Calculus!!</strong></li>
+</ul>
+</li>
+<li>In practice: while we always implement the analytic gradient, we want to check that it is correct with a numerical gradient. <strong>Gradient check</strong>.</li>
+</ul>
+<h3>Vanilla Gradient Descent</h3>
+<ul>
+<li>The heart of all our learning algorithms.</li>
+<li>Hyperparameter: step size / learning rate.</li>
+<li>We will use fancier update rules that work better in practice.</li>
+</ul>
+<h3>A last wrinkle</h3>
+<ul>
+<li>Computing the average loss every time is very expensive.</li>
+<li>Instead, we just do that for a mini-batch : <strong>stochastic gradient descent</strong>.</li>
+<li>There's a <a href="http://vision.stanford.edu/teaching/cs231n-demos/linear-classify/">very nice demo</a> of linear classifiers.</li>
+</ul>
+<h2>Image features</h2>
+<ul>
+<li>Different features of the image first, instead of the raw pixels.</li>
+<li>Clever feature transform can sometimes help to make the problem separable by a linear classifier.</li>
+<li>For example: a color histogram.</li>
+<li>Histogram of oriented gradients.</li>
+<li>Another example: "bag of words".</li>
+<li>The idea of a convolutional neural network is that the feature extraction is not done ahead of time, but keeps getting inferred from the data during training. <strong>I liked this as an explanation.</strong></li>
+</ul>
+</body>
+</html>
