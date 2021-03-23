@@ -218,4 +218,4 @@
   * For example: a color histogram.
   * Histogram of oriented gradients.
   * Another example: "bag of words".
-  * The idea of a convolutional neural network is that the feature extraction is not done ahead of time, but keeps getting inferred from the data during training. **I liked this as an explanation.**v
+  * The idea of a convolutional neural network is that the feature extraction is not done ahead of time, but keeps getting inferred from the data during training. **I liked this as an explanation.**
