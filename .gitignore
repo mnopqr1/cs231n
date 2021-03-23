@@ -4,4 +4,4 @@ cs231n-venv/include
 cs231n-venv/etc
 cs231n-venv/share
 cs231n-venv/lib64
-*/.ipynb_checkpoints/
+.ipynb_checkpoints/
