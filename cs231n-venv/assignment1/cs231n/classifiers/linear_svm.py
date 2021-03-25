@@ -57,7 +57,7 @@ def svm_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    dW += 2 * reg * W
+    dW += 2 * reg * W 
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
@@ -81,9 +81,25 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    A = X.dot(W)   # row A[i] is length C vector containing W's opinion about X[i]
+    A = X @ W   # row A[i] is length C vector containing the scores of X[i] according to W
     
-
+    num_train = X.shape[0]
+    num_classes = W.shape[1]
+    Y = np.ones((num_train, num_classes))
+    Y[np.arange(num_train), y] = 0
+    # Y[i] is 1 minus the one-hot encoding of y: a length C vector containing a 0 at column y[i], 1 elsewhere
+    
+    # SC = scores of correct answers, (N,1) matrix with score of class y[i] in row i.
+    SC = A[np.arange(num_train),y].reshape(num_train, 1)
+    
+    # RL = "raw loss": differences between score to other class and correct class, at correct class = 0
+    RL = A - SC.reshape(num_train,1) + Y 
+    
+    # L[i] is the vector of losses incurred at training example i
+    L = np.maximum(RL, 0) 
+    
+    loss = sum(sum(L))/num_train + reg * np.sum(W * W)
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     #############################################################################
@@ -97,8 +113,19 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
-
+    # dWwrong : contribution of wrong classes to dW
+    dWwrong = X.transpose() @ (RL > 0)
+    
+    # nwrong[i] = number of wrong classes for example i
+    nwrong = np.sum(L > 0, axis=1).reshape(num_train, 1)
+    # scaledX[i] = contribution of example i to column y[i] of dW
+    scaledX = -nwrong * X
+    
+    # dWright : contribution of correct class to dW
+    dWright = scaledX.transpose() @ (1 - Y)
+    
+    dW = (dWwrong + dWright)/num_train + 2 * reg * W
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     return loss, dW
