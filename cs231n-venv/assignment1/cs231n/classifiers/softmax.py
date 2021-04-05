@@ -77,19 +77,18 @@ def softmax_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    A = X @ W   # row A[i] is length C vector containing the scores of X[i] according to W
-    
     num_train = X.shape[0]
     num_classes = W.shape[1]
+    A = X @ W   # row A[i] is length C vector containing the scores of X[i] according to W
+    M = np.max(A, axis=1)
+    A -= M.reshape(num_train,1)
+    S = np.sum(np.exp(A), axis=1)
+    P = np.exp(A) / S.reshape(num_train,1) 
     Y = np.zeros((num_train, num_classes))
     Y[np.arange(num_train), y] = 1
-    # Y[i] is the one-hot encoding of y
-
-    
-    # SC = A[np.arange(num_train),y].reshape(num_train, 1)
-    # RL = A - SC.reshape(num_train,1) + Y 
-    # L = np.maximum(RL, 0) 
-    # loss = sum(sum(L))/num_train + reg * np.sum(W * W)
+    correctP = np.sum(np.multiply(P,Y), axis=1)
+    loss = - np.sum(np.log(correctP)) / num_train + reg * np.sum(W * W)
+    dW = np.transpose(X) @ (P - Y) / num_train #+ 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
