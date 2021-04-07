@@ -219,3 +219,35 @@
   * Histogram of oriented gradients.
   * Another example: "bag of words".
   * The idea of a convolutional neural network is that the feature extraction is not done ahead of time, but keeps getting inferred from the data during training. **I liked this as an explanation.**
+
+# [Lecture 4](https://www.youtube.com/watch?v=h7iBpEHGVNc&list=PLC1qU-LWwrF64f4QKQT-Vg5Wr4qEE1Zxk&index=3
+[2020 slides](http://cs231n.stanford.edu/slides/2020/lecture_4.pdf)
+
+## Recap
+  * Scores function
+  * Loss function
+  * Data loss plus regularization
+  * We want the gradient with respect to W, to find the right W.
+  * To do gradient descent: derive analytic gradient, and then check with numerical gradient.
+
+## Backpropagation
+  * Represent function as computational graph
+  * A simple example: f(x,y,z) = (x + y)z, multiply the gradients moving backwards. **I did not like this example much** Better would be something like (2x + 3y) * 4z, so that you would see the effect of multiplying by a number other than 1...
+  * Upstream gradient times local gradient gives new upstream gradient (this is the chain rule).
+  * Computation of gradient of another example.
+  * We can look at the graph at any granularity, for example the sigmoid function can be regarded as one node.
+  * When a function branches, we add the contributions of the gradients coming in when backpropagation, using multivariate chain rule.
+  
+## Implementation
+  * A computational graph has a forward pass and a backward pass.
+  * You can modularize this for example using OOP.
+  
+## Neural networks
+  * Making a non-linear function by composing multiple linear functions with various non-linear functions in between.
+  * What kind of non-linear functions to use..? We'll see this later.
+  * We can stack multiple such layers on top of each other.
+  * We say "3 layer neural net" or "2 hidden layer neural net", it means the same.
+  
+### Loose analogy with biology
+  * Analogy with neurons, axons, activation function
+  * The activation function in neurons is most like Relu.
