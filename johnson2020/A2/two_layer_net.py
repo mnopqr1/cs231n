@@ -110,16 +110,15 @@ def nn_forward_pass(params, X):
     # Compute the forward pass
     hidden = None
     scores = None
-    ############################################################################
-    # TODO: Perform the forward pass, computing the class scores for the input.#
-    # Store the result in the scores variable, which should be an tensor of    #
-    # shape (N, C).                                                            #
-    ############################################################################
-    # Replace "pass" statement with your code
-    pass
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    
+    #print("X shape: ", X.shape)
+    #print("W1 shape: ", W1.shape)
+    O1 = X @ W1 + b1
+    #print("H shape: ", H.shape)
+    hidden = torch.maximum(O1, torch.zeros_like(O1))
+    #print("hidden shape: ", hidden.shape)
+    #print("W2 shape: ", W2.shape)
+    scores = hidden @ W2 + b2
 
     return scores, hidden
 
@@ -175,8 +174,21 @@ def nn_forward_backward(params, X, y=None, reg=0.0):
     # If you are not careful here, it is easy to run into numeric instability  #
     # (Check Numeric Stability in http://cs231n.github.io/linear-classify/).   #
     ############################################################################
-    # Replace "pass" statement with your code
-    pass
+
+    # assert A.shape == torch.Size([num_train, num_classes])
+    num_train = X.shape[0]
+    M = torch.max(scores, 1).values
+    # print(M)
+    A = scores - torch.reshape(M, (num_train,1))
+    #print(A)
+    S = torch.sum(torch.exp(A), 1)
+    P = torch.exp(A) / torch.reshape(S, (num_train,1))
+    Y = torch.zeros_like(P)
+    Y[torch.arange(num_train), y] = 1
+    correctP = torch.sum(torch.multiply(P,Y), 1)
+    regul = reg * (torch.sum(W1 * W1) + torch.sum(W2 * W2))
+    loss = - torch.sum(torch.log(correctP)) / num_train + regul
+
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -190,7 +202,10 @@ def nn_forward_backward(params, X, y=None, reg=0.0):
     # tensor of same size                                                     #
     ###########################################################################
     # Replace "pass" statement with your code
-    pass
+    grads['W2'] =  torch.transpose(h1, 0, 1) @ (P - Y) / num_train + 2 * reg * W2
+    #grads['b2'] = None
+    #grads['W1'] = None
+    #grads['b1'] = None
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
