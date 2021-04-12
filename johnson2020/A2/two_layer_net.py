@@ -6,7 +6,8 @@ import torch
 import random
 import statistics
 from linear_classifier import sample_batch
-
+import itertools
+from a2_helpers import plot_stats
 
 def hello_two_layer_net():
   """
@@ -163,49 +164,72 @@ def nn_forward_backward(params, X, y=None, reg=0.0):
     if y is None:
       return scores
 
-    # Compute the loss
+    ## FORWARD: Compute the loss
     loss = None
-    ############################################################################
-    # TODO: Compute the loss, based on the results from nn_forward_pass.       #
-    # This should include both the data loss and L2 regularization for W1 and  #
-    # W2. Store the result in the variable loss, which should be a scalar. Use #
-    # the Softmax classifier loss. When you implment the regularization over W,#
-    # please DO NOT multiply the regularization term by 1/2 (no coefficient).  #
-    # If you are not careful here, it is easy to run into numeric instability  #
-    # (Check Numeric Stability in http://cs231n.github.io/linear-classify/).   #
-    ############################################################################
-
-    # assert A.shape == torch.Size([num_train, num_classes])
     num_train = X.shape[0]
-    M = torch.max(scores, 1).values
-    # print(M)
-    A = scores - torch.reshape(M, (num_train,1))
-    #print(A)
-    S = torch.sum(torch.exp(A), 1)
-    P = torch.exp(A) / torch.reshape(S, (num_train,1))
+
+    # rescale scores to have max value 0 for numerical stability
+    scores_stab = scores - torch.reshape(torch.max(scores, 1).values, (num_train,1))
+    
+    # compute matrix of P values
+    Sigma = torch.sum(torch.exp(scores_stab), 1)
+    P = torch.exp(scores_stab) / torch.reshape(Sigma, (num_train,1))
+
+    # create one hot encoding of y
     Y = torch.zeros_like(P)
     Y[torch.arange(num_train), y] = 1
+
+    # pick out P values of correct classes
     correctP = torch.sum(torch.multiply(P,Y), 1)
+
+    # compute regularization loss
     regul = reg * (torch.sum(W1 * W1) + torch.sum(W2 * W2))
+
+    # data loss plus regularization loss
     loss = - torch.sum(torch.log(correctP)) / num_train + regul
 
-    ###########################################################################
-    #                             END OF YOUR CODE                            #
-    ###########################################################################
+    
+    ## BACKWARD
 
     # Backward pass: compute gradients
     grads = {}
-    ###########################################################################
-    # TODO: Compute the backward pass, computing the derivatives of the       #
-    # weights and biases. Store the results in the grads dictionary.          #
-    # For example, grads['W1'] should store the gradient on W1, and be a      #
-    # tensor of same size                                                     #
-    ###########################################################################
-    # Replace "pass" statement with your code
-    grads['W2'] =  torch.transpose(h1, 0, 1) @ (P - Y) / num_train + 2 * reg * W2
-    #grads['b2'] = None
-    #grads['W1'] = None
-    #grads['b1'] = None
+
+    
+    # softmax loss gradient = P - Y, normalized
+    dscores = (P - Y) / num_train
+
+    
+    
+    ## scores = h1 @ W2 + b2 ##
+
+    # dW2 <-- (@ h1) <-- dscores 
+    # plus regularization
+    grads['W2'] =  torch.transpose(h1, 0, 1) @ dscores + 2 * reg * W2
+
+    # db2 <-- (+) <-- sum(dscores)
+    # plus regularization
+    grads['b2'] = torch.sum(dscores, 0) + 2 * reg * b2
+
+    # dh1 <-- (@ W2) <-- dscores
+    dh1 = dscores @ torch.transpose(W2, 0, 1) 
+
+    
+    
+    ## h1 = max(o1, 0) ##
+
+    # do1 <-- (max) <-- dh1
+    do1 = dh1 * torch.gt(h1, torch.zeros_like(h1)).to(torch.float32)
+
+    
+    
+    ## o1 = X @ W1 + b1 ##
+
+    # db1 <-- (+) <-- do1
+    # plus regularization
+    grads['b1'] = torch.sum(do1, 0)  + 2 * reg * b1
+
+    # dW1 <-- (@ X) <-- do1
+    grads['W1'] = torch.transpose(X, 0, 1) @ do1 + 2 * reg * W1
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -275,7 +299,10 @@ def nn_train(params, loss_func, pred_func, X, y, X_val, y_val,
     # stored in the grads dictionary defined above.                         #
     #########################################################################
     # Replace "pass" statement with your code
-    pass
+    params['W1'] -= learning_rate * grads['W1']
+    params['b1'] -= learning_rate * grads['b1']
+    params['W2'] -= learning_rate * grads['W2']
+    params['b2'] -= learning_rate * grads['b2']
     #########################################################################
     #                             END OF YOUR CODE                          #
     #########################################################################
@@ -331,7 +358,8 @@ def nn_predict(params, loss_func, X):
   # TODO: Implement this function; it should be VERY simple!                #
   ###########################################################################
   # Replace "pass" statement with your code
-  pass
+  scores, _ = nn_forward_pass(params, X)
+  y_pred = torch.argmax(scores, 1)
   ###########################################################################
   #                              END OF YOUR CODE                           #
   ###########################################################################
@@ -355,10 +383,7 @@ def nn_get_search_params():
   - learning_rate_decays: learning rate decay candidates
                               e.g. [1.0, 0.95, ...]
   """
-  learning_rates = []
-  hidden_sizes = []
-  regularization_strengths = []
-  learning_rate_decays = []
+  
   ###########################################################################
   # TODO: Add your own hyper parameter lists. This should be similar to the #
   # hyperparameters that you used for the SVM, but you may need to select   #
@@ -366,7 +391,10 @@ def nn_get_search_params():
   # classifier.                                                             #
   ###########################################################################
   # Replace "pass" statement with your code
-  pass
+  learning_rates = [0.8, 1.0, 1.2]
+  hidden_sizes = [64, 128]
+  regularization_strengths = [1e-04, 1e-05]
+  learning_rate_decays = [0.95]
   ###########################################################################
   #                           END OF YOUR CODE                              #
   ###########################################################################
@@ -420,9 +448,32 @@ def find_best_net(data_dict, get_param_set_fn):
   # automatically like we did on the previous exercises.                      #
   #############################################################################
   # Replace "pass" statement with your code
-  pass
+  stats_dict = {}
+  lrs, hss, rss, lrds = get_param_set_fn()
+  for hp in itertools.product(lrs, hss, rss, lrds):
+    lr = hp[0]
+    hs = hp[1]
+    rs = hp[2]
+    lrd = hp[3]
+    print(f'''train with learning rate: {lr},
+              hidden layer size: {hs},
+              reg strength: {rs},
+              learning rate decay: {lrd}''')
+
+    net = TwoLayerNet(3 * 32 * 32, hs, 10, device=data_dict['X_train'].device, dtype=data_dict['X_train'].dtype)
+    stats = net.train(data_dict['X_train'], data_dict['y_train'], data_dict['X_val'], data_dict['y_val'],
+              num_iters=3000, batch_size=1000,
+              learning_rate=lr, learning_rate_decay=lrd,
+              reg=rs, verbose=False)
+    stats_dict[hp] = stats
+    plot_stats(stats)
+    print(f'''validation accuracy: {stats['val_acc_history'][-1]}''')
+    if best_val_acc < stats['val_acc_history'][-1]:
+      best_val_acc = stats['val_acc_history'][-1]
+      best_net = net
+      best_stat = stats
   #############################################################################
   #                               END OF YOUR CODE                            #
   #############################################################################
 
-  return best_net, best_stat, best_val_acc
+  return best_net, best_stat, best_val_acc, stats_dict
