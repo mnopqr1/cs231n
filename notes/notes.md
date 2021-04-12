@@ -251,3 +251,29 @@
 ### Loose analogy with biology
   * Analogy with neurons, axons, activation function
   * The activation function in neurons is most like Relu.
+
+# [Lecture 5: Neural Networks (Johnson 2019)](https://www.youtube.com/watch?v=g6InpdhUblE)
+I switched to Johnson's more recent lectures. [Slides](https://web.eecs.umich.edu/~justincj/slides/eecs498/FA2020/598_FA2020_lecture05.pdf)
+
+## Features
+  * Color histogram, Hisogram of Oriented Gradients, Bag of Visual Words
+  * Can combine the features into a vector, but this is a fixed representation
+  * We may want to automatically tune the entire network, not just the last step.
+
+## Neural networks
+  * Single end-to-end pipeline
+  * Two layer network has two learnable weight matrices, with a relu (max with 0) in between.
+  * Fully-connected neural network / Multi-Layer Perceptron (MLP): everything is connected.
+  * First layer is a bank of templates, second layer recombines the templates.
+  * The different templates are used to cover multiple modes of a class.
+  * A "distributed representation" of the image.
+  * Easy to generalize to more layers: "deep" neural networks.
+  * The max with 0 is called the *activation function* of the network. We use "Rectified Linear Unit" (ReLU).
+  * If you don't put a non-linear function in between, you get just a linear classifier.
+  * A two-layer neural network implementation can be very short, just 20 lines of python.
+  
+# [Lecture 6: Backpropagation](https://www.youtube.com/watch?v=dB-u77Y5a6A)
+
+## How to compute gradients?
+  * It is possible to compute on paper "in one go" but very unstructured.
+  * 
