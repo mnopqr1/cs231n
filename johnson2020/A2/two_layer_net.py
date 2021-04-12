@@ -172,8 +172,9 @@ def nn_forward_backward(params, X, y=None, reg=0.0):
     scores_stab = scores - torch.reshape(torch.max(scores, 1).values, (num_train,1))
     
     # compute matrix of P values
-    Sigma = torch.sum(torch.exp(scores_stab), 1)
-    P = torch.exp(scores_stab) / torch.reshape(Sigma, (num_train,1))
+    E = torch.exp(scores_stab)
+    Sigma = torch.sum(E, 1)
+    P = E / torch.reshape(Sigma, (num_train,1))
 
     # create one hot encoding of y
     Y = torch.zeros_like(P)
