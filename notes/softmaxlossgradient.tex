@@ -7,14 +7,14 @@
 \usepackage{setspace}
 \onehalfspacing
 \begin{document}
-This note does the necessary computations to show that the softmax loss gradient is ``$p - 1$ at the correct class and $p$ at all other classes''.
+This note does the necessary computations to show that the cross-entropy softmax loss gradient is ``$p - 1$ at the correct class and $p$ at all other classes''.
 
 Suppose that $x \in \mathbb R^d$ is a training example that receives score $s \in \mathbb R^c$ from the network, while the correct answer is some $y \in \{1, \dots, c\}$. %Write $\hat y$ for the one-hot encoding of $y$, that is $\hat y \in \mathbb R^c$ with $\hat y_i = 0$ for all $i \neq y$ and $\hat y_y = 1$.
-The \emph{softmax loss} of this training example is defined as
+The \emph{cross-entropy softmax loss} of this training example is defined as
 
 \[\ell(s) = -\log p_y,\]
 
-where we write $p_i := \dfrac{e^{s_i}}{\Sigma}$ for each $1 \leq i \leq c$ with $\Sigma := \sum_{i=1}^c e^{s_i}$.\\
+where we write $p_i := \dfrac{e^{s_i}}{\Sigma}$ for each $1 \leq i \leq c$ with $\Sigma := \sum_{i=1}^c e^{s_i}$. The vector $p$ is called the \emph{softmax} of $s$. \\
 
 We want to compute $\dfrac{\partial \ell}{\partial s}$. By the chain rule and the fact that the derivative of $\log z$ is $\dfrac{1}{z}$, we have
 
