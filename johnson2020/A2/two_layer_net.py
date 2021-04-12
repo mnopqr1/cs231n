@@ -185,6 +185,8 @@ def nn_forward_backward(params, X, y=None, reg=0.0):
 
     # compute regularization loss
     regul = reg * (torch.sum(W1 * W1) + torch.sum(W2 * W2))
+    # SHOULD ADD:
+    # + torch.sum(b1 * b1) + torch.sum(b2 * b2)) -> forgotten during first iteration of this assignment, but does not seem to make much of a difference here?!
 
     # data loss plus regularization loss
     loss = - torch.sum(torch.log(correctP)) / num_train + regul
@@ -355,16 +357,10 @@ def nn_predict(params, loss_func, X):
   """
   y_pred = None
 
-  ###########################################################################
-  # TODO: Implement this function; it should be VERY simple!                #
-  ###########################################################################
   # Replace "pass" statement with your code
   scores, _ = nn_forward_pass(params, X)
   y_pred = torch.argmax(scores, 1)
-  ###########################################################################
-  #                              END OF YOUR CODE                           #
-  ###########################################################################
-
+  
   return y_pred
 
 
